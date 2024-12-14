@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module FiniteStateMachine where
+module FiniteStateMachine(generateDot, liftModel, extractFSM) where
 
 import Control.Monad.Free
 import Data.Text (Text)
@@ -51,9 +51,7 @@ liftModel = do
     transition "MovingUp" "Stop" "Idle"
     transition "Idle" "GoDown" "MovingDown"
     transition "MovingDown" "Stop" "Idle"
-    transition "Idle" "PickUp" "Idle"
-    ignore "MovingUp" "PickUp"
-    ignore "MovingDown" "PickUp"
+    ignore "Idle" "PickUp"
 
 generateDot :: FSM a -> Text
 generateDot fsm = T.unlines $ "digraph FSM {" : map toDot (extractFSM fsm) ++ ["}"]
@@ -63,7 +61,6 @@ generateDot fsm = T.unlines $ "digraph FSM {" : map toDot (extractFSM fsm) ++ ["
     toDot (StartState name _) = T.concat ["  start -> ", name, ";"]
     toDot (EndState name _) = T.concat ["  ", name, " [shape=doublecircle];"]
     toDot (Ignore from to _) = T.concat ["  ", from, " -> ", to, " [style=dotted];"]
-    toDot _ = ""
 
 extractFSM :: FSM a -> [FSMCommand ()]
 extractFSM (Free command) = case command of
